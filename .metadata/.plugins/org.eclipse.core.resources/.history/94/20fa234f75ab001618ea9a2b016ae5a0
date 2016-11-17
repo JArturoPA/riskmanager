@@ -1,0 +1,58 @@
+package com.analitica.web.dao.impl;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+
+import com.analitica.web.dao.FactorDAO;
+import com.analitica.web.domain.Factor;
+
+public class JdbcFactorDAO implements FactorDAO, InitializingBean{
+	private DataSource dataSource;
+	private JdbcTemplate jdbcTemplate;
+	
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
+	@Override
+	public void afterPropertiesSet() throws Exception{
+		if(dataSource == null){
+			throw new BeanCreationException("Must set dataSource on JdbcFactorDAO");
+		}
+		
+		if (jdbcTemplate == null) {
+			throw new BeanCreationException("Null JdbcTemplate on JdbcFactorDAO");
+		}
+	}
+	
+	public List<Factor> getByIdProveedor(int idProveedor) {
+		String sql = "SELECT * FROM db_Factores WHERE Id_Proveedor = ?";
+		List<Factor> listaFactores = jdbcTemplate.query(sql, new RowMapper<Factor>(){
+			@Override
+	        public Factor mapRow(ResultSet rs, int rowNum) throws SQLException {
+				Factor f = new Factor();
+				
+				f.setId_factor(1);
+				f.setFactor("");
+				f.setId_proveedor(1);
+				
+				return f;
+			}
+		});
+		
+		if( listaFactores == null )
+			return new ArrayList<Factor>();
+		
+		return listaFactores;
+	}	
+}

@@ -1,0 +1,193 @@
+package com.analitica.web.dao.impl;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+
+import com.analitica.web.dao.VolatilidadDAO;
+import com.analitica.web.domain.FormVolatilidad;
+import com.analitica.web.domain.Graphic;
+import com.analitica.web.domain.PairDateValue;
+import com.analitica.web.domain.PairProveedorFactor;
+
+public class JdbcVolatilidadDAO implements VolatilidadDAO, InitializingBean {
+	/*
+	 * i suppose lots have happened with you, I need to know everything.
+	 * 
+	 * i have been dancing as always. I never will stop to love tango, it's my life. You have to see me dancing one day.
+	 * do you remember Laura?, we got married and are waiting for a baby.
+	 * And about my job, I work as a software architect. I have more money and time for me, jeje.
+	 * 
+	 * you were working in an art museum, do you work there yet?, i could visit you soon.
+	 * I remember when your paints were in an exposition at museum, I guess you have painted more pictures.
+	 * you have to tell me what happened with you. I miss you, Lil.
+	 * 
+	 * You must to visit us in our new home, it's big and fantastic, I really love it.
+	 */
+	private DataSource dataSource;
+	private JdbcTemplate jdbcTemplate;
+	
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
+	@Override
+	public void afterPropertiesSet() throws Exception{
+		if(dataSource == null){
+			throw new BeanCreationException("Must set dataSource on JdbcVolatilidadDAO");
+		}
+		
+		if (jdbcTemplate == null) {
+			throw new BeanCreationException("Null JdbcTemplate on JdbcVolatilidadDAO");
+		}
+	}
+
+	public List<Graphic> list(FormVolatilidad f) {
+		List<Graphic> graphicsList = new ArrayList<Graphic>();
+		
+		int metodo = f.getMetodo();
+		int noDias;
+		
+		if(metodo == 1) noDias = f.getNoDias();
+		else if(metodo == 2) noDias = f.getNoDatos();
+		else noDias = 0;
+		
+		for(PairProveedorFactor ppf : f.getNodos()){
+			int proveedor = ppf.getProv();
+			int factor = ppf.getId();
+			
+			String sql = "(SELECT * FROM fr_FactoresDeRiesgo "
+					   + "WHERE Id_Proveedor = " + proveedor + " AND Id_Factor = " + factor + " "
+			           + "AND Fecha BETWEEN '" + f.getFechaI() + "' AND '" + f.getFechaF() + "' "
+			           + "UNION "
+			           + "SELECT * FROM fr_FactoresDeRiesgo "
+			           + "WHERE Id_Proveedor = " + proveedor + " AND Id_Factor = " + factor + " "
+			           + "AND Fecha IN ( SELECT TOP (" + noDias + ") Fecha FROM Cat_FechasOficiales " 
+			           + "WHERE Fecha < '" + f.getFechaI() + "' ORDER BY Fecha DESC )) "
+			           + "ORDER BY Id_Proveedor, Id_Factor, Fecha";
+			
+			List<PairDateValue> listPDV = jdbcTemplate.query(sql, new RowMapper<PairDateValue>(){
+				@Override
+				public PairDateValue mapRow(ResultSet rs, int rowNum) throws SQLException {
+					PairDateValue pdv = new PairDateValue();
+					
+					Timestamp timestamp = rs.getTimestamp("Fecha");
+					if(timestamp != null){
+						pdv.setDate( new SimpleDateFormat("MM-dd-yyyy").format(timestamp) );
+					}
+					pdv.setDoubleValue(rs.getDouble("Valor"));
+					pdv.setStringValue(rs.getString("Factor"));
+					
+					return pdv;
+				}
+			});
+			
+			List<PairDateValue> p = startProcess(listPDV, f.getFechaI(), f.getFechaF(), f.getFactorDD(), metodo, noDias);
+			
+			Graphic g = new Graphic();
+			
+			g.setListOfValues(p);
+			if(proveedor == 1) g.setProveedor("PIP");
+			else if(proveedor == 2) g.setProveedor("VALMER");
+			else g.setProveedor("UNKNOWN");
+			g.setFactor(listPDV.get(0).getStringValue());
+			
+			graphicsList.add(g);
+		}
+		
+		return graphicsList;
+	}
+	
+	private List<PairDateValue> startProcess(List<PairDateValue> listPDV, String sFecI, String sFecF, double factor, int metodo, int noDias){
+        int tam = listPDV.size();
+        double rendimientos [] = new double[tam];
+        double dEst [] = new double[tam];
+        double pesos [] = new double [noDias];
+        double EWMAtab [] = new double [tam];
+        double rendCuad [] = new double [tam];
+        
+        String fechas [] = new String [tam];
+        int cont = 0;
+        
+        for(PairDateValue p : listPDV){
+        	fechas[cont] = p.getDate();
+        	cont++;
+        }
+        
+        //Cálculo de rendimientos
+        for(int iCont = 1; iCont < tam; iCont++){	
+            rendimientos[iCont] = Math.log(listPDV.get(iCont).getDoubleValue()/listPDV.get(iCont-1).getDoubleValue());
+            rendCuad[iCont] = Math.pow(rendimientos[iCont], 2);
+        }
+        
+        if(metodo == 1)
+            for(int iCont = noDias; iCont < tam; iCont++){
+                dEst[iCont] = desvEstandar(Arrays.copyOfRange(rendimientos, iCont-noDias+1, iCont+1), noDias);
+                dEst[iCont] *= Math.sqrt(252.0);
+            }
+        else if(metodo == 2){
+            //Generamos pesos
+            int iCont2 = noDias-1;
+            for(int iCont = 0; iCont < noDias; iCont++, iCont2--) pesos[iCont2] = Math.pow(factor, iCont)*(1.0-factor);
+            //Generamos tabla EWMA
+            for(int i = noDias; i < tam; i++) EWMAtab[i] = Math.sqrt(sumaProducto(Arrays.copyOfRange(rendCuad, i-noDias+1, i+1), pesos)*252.0 );
+        }
+        
+        if(metodo == 1)
+            return formatoDatos(Arrays.copyOfRange(fechas, noDias, tam), Arrays.copyOfRange(dEst, noDias, tam));
+        else if(metodo == 2)
+            return formatoDatos(Arrays.copyOfRange(fechas, noDias, tam), Arrays.copyOfRange(EWMAtab, noDias, tam));
+        
+        return new ArrayList<PairDateValue>();
+    }
+    
+    private double desvEstandar(double[] dValor, int noDias){
+        double sumatoria = 0.0;
+        double media = 0.0;
+        double varianza = 0.0; 
+
+        for(int i = 0; i < noDias; i++) sumatoria += dValor[i];
+        
+        media = sumatoria/(noDias*1.0f);
+        
+        for(int i = 0; i < noDias; i++) varianza += Math.pow(dValor[i]-media, 2);
+        
+        varianza /= noDias;
+        
+        return Math.sqrt(varianza);
+    }
+    
+    private double sumaProducto(double[] dArreglo1, double[] dArreglo2){
+        double res = 0.0;
+        for(int i = 0; i < dArreglo1.length; i++) res += (dArreglo1[i]*dArreglo2[i]);
+        
+        return res;
+    }
+    
+    public List<PairDateValue> formatoDatos(String fechas[], double dDatos[]){
+        List<PairDateValue> alDatos = new ArrayList<PairDateValue>();
+        
+        for(int iCont = 0; iCont < dDatos.length; iCont++){
+        	PairDateValue pdv = new PairDateValue();
+        	
+        	pdv.setDate(fechas[iCont]);
+        	pdv.setDoubleValue(dDatos[iCont]*100.0);
+        	
+            alDatos.add(pdv);
+        }
+        
+        return alDatos;
+    }
+}

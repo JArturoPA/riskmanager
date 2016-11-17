@@ -1,0 +1,5 @@
+package com.analitica.web.service.impl;
+
+public class ConsultaHistoricaServiceImpl {
+
+}

@@ -1,0 +1,22 @@
+package com.analitica.web.domain.repository.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.analitica.web.dao.ConsultaHistoricaDAO;
+import com.analitica.web.domain.FormConsultaHistorica;
+import com.analitica.web.domain.PairDateValue;
+import com.analitica.web.domain.repository.ConsultaHistoricaRepository;
+
+@Repository
+public class ConsultaHistoricaRepositoryImpl implements ConsultaHistoricaRepository{
+	@Autowired
+	ConsultaHistoricaDAO ch;
+	
+	public List<PairDateValue> getReport(FormConsultaHistorica f) {
+		return ch.getReport(f);
+	}
+
+}

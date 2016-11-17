@@ -1,0 +1,20 @@
+package com.analitica.web.service.impl;
+
+import java.util.List;
+
+import com.analitica.web.domain.FormConsultaHistorica;
+import com.analitica.web.domain.PairDateValue;
+import com.analitica.web.domain.repository.ConsultaHistoricaRepository;
+import com.analitica.web.service.ConsultaHistoricaService;
+
+@Service
+public class ConsultaHistoricaServiceImpl implements ConsultaHistoricaService{
+	@Autowired
+	ConsultaHistoricaRepository ch;
+	
+	@Override
+	public List<PairDateValue> getReport(FormConsultaHistorica f) {
+		return ch.getReport(f);
+	}
+
+}

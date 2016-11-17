@@ -1,0 +1,13 @@
+package com.analitica.web.dao;
+
+import java.text.ParseException;
+import java.util.List;
+
+import org.springframework.dao.DataAccessException;
+
+import com.analitica.web.domain.FormConsultaHistorica;
+import com.analitica.web.domain.PairDateValue;
+
+public interface ConsultaHistoricaDAO {
+	public List<PairDateValue> getReport(FormConsultaHistorica fch) throws DataAccessException, ParseException;
+}

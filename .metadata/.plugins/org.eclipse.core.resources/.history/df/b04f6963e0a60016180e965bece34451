@@ -1,0 +1,103 @@
+package com.analitica.web.domain;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class PairDateValue {
+	private SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
+	private Date date;
+	private double doubleValue;
+	private int intValue;
+	private String stringValue;
+	
+	public PairDateValue(){}
+
+	public PairDateValue(String date, double doubleValue) throws ParseException{
+		super();
+		this.date = sdf.parse(date);
+		this.doubleValue = doubleValue;
+		this.intValue = 0;
+		this.stringValue = "";
+	}
+	
+	public PairDateValue(String date, int intValue) throws ParseException{
+		super();
+		this.date = sdf.parse(date);
+		this.doubleValue = 0.0;
+		this.intValue = intValue;
+		this.stringValue = "";
+	}
+	
+	public PairDateValue(String date, String stringValue) throws ParseException{
+		super();
+		this.date = sdf.parse(date);
+		this.doubleValue = 0.0;
+		this.intValue = 0;
+		this.stringValue = stringValue;
+	}
+	/**
+	 * @return the date
+	 */
+	public Date getDate() {
+		return date;
+	}
+
+	/**
+	 * @param date the date to set
+	 * @throws ParseException 
+	 */
+	public void setDate(String date) throws ParseException {
+		System.out.println( date );
+		this.date = sdf.parse(date);
+	}
+	/**
+	 * @param date the date to set
+	 */
+	public void setDate(Date date){
+		this.date = date;
+	}
+
+	/**
+	 * @return the doubleValue
+	 */
+	public double getDoubleValue() {
+		return doubleValue;
+	}
+
+	/**
+	 * @param doubleValue the doubleValue to set
+	 */
+	public void setDoubleValue(double doubleValue) {
+		this.doubleValue = doubleValue;
+	}
+
+	/**
+	 * @return the intValue
+	 */
+	public int getIntValue() {
+		return intValue;
+	}
+
+	/**
+	 * @param intValue the intValue to set
+	 */
+	public void setIntValue(int intValue) {
+		this.intValue = intValue;
+	}
+
+	/**
+	 * @return the stringValue
+	 */
+	public String getStringValue() {
+		return stringValue;
+	}
+
+	/**
+	 * @param stringValue the stringValue to set
+	 */
+	public void setStringValue(String stringValue) {
+		this.stringValue = stringValue;
+	}
+	
+}

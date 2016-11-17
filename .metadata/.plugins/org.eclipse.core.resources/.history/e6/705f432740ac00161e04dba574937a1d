@@ -1,0 +1,85 @@
+package com.analitica.web.dao.impl;
+
+import java.util.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+
+import com.analitica.web.dao.ConsultaHistoricaDAO;
+import com.analitica.web.domain.FormConsultaHistorica;
+import com.analitica.web.domain.PairDateValue;
+
+public class JdbcConsultaHistoricaDAO implements ConsultaHistoricaDAO, InitializingBean {
+	private DataSource dataSource;
+	private JdbcTemplate jdbcTemplate;
+	
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
+	@Override
+	public void afterPropertiesSet() throws Exception{
+		if(dataSource == null){
+			throw new BeanCreationException("Must set dataSource on JdbcConsultaHistoricaDAO");
+		}
+		
+		if (jdbcTemplate == null) {
+			throw new BeanCreationException("Null JdbcTemplate on JdbcConsultaHistoricaDAO");
+		}
+	}
+
+	
+	public List<PairDateValue> getReport(FormConsultaHistorica fch) {
+		System.out.println("Entra");
+		String sql = "SELECT * FROM fr_FactoresDeRiesgo "
+				   + "WHERE Id_Proveedor = ? "
+				   + "AND Id_Factor = ? AND Fecha BETWEEN ? AND ?";
+		
+		SimpleDateFormat sf = new SimpleDateFormat("MM-dd-yyyy");
+		Date fI = null;
+		Date fF = null;
+		try{System.out.println("Entra en TRY");
+			fI = sf.parse(fch.getFechaI());
+			fF = sf.parse(fch.getFechaF());
+			System.out.println("Termina TRY");
+		}catch(ParseException e){
+			System.out.println("Entra en CATCH");
+			e.printStackTrace();
+		}
+		
+		List<PairDateValue> report = jdbcTemplate.query(sql, new Object[]{
+															String.valueOf(fch.getId_proveedor()),
+															String.valueOf(fch.getId_factor()),
+															fI.getTime(),
+															fF.getTime()
+														}, new RowMapper<PairDateValue>(){
+			@Override
+	        public PairDateValue mapRow(ResultSet rs, int rowNum) throws SQLException {
+				PairDateValue pdv = new PairDateValue();
+				
+				pdv.setDate(rs.getString("Fecha"));
+				pdv.setDoubleValue(rs.getInt("Valor"));
+				System.out.println(pdv.getDate() + " " + pdv.getDoubleValue());
+				
+				return pdv;
+			}
+		});
+		
+		if( report == null )
+			return new ArrayList<PairDateValue>();
+		 
+		return report;
+	}
+
+}

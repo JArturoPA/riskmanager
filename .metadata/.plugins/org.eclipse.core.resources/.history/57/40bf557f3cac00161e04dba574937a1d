@@ -1,0 +1,10 @@
+package com.analitica.web.dao;
+
+import java.util.List;
+
+import com.analitica.web.domain.FormConsultaHistorica;
+import com.analitica.web.domain.PairDateValue;
+
+public interface ConsultaHistoricaDAO {
+	public List<PairDateValue> getReport(FormConsultaHistorica fch);
+}

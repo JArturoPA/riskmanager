@@ -1,0 +1,5 @@
+package com.analitica.web.dao;
+
+public interface FactorDAO {
+	public list<Factor> getByIdProveedor(int idProveedor);
+}

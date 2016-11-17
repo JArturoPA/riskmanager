@@ -1,0 +1,4 @@
+#Tomcat publish data
+#Thu Nov 03 17:19:06 CST 2016
+org.eclipse.jst.jee.server\:webstore=C\:\\Users\\APerez\\Downloads\\sts-bundle\\pivotal-tc-server-developer-3.2.0.RELEASE\\base-instance\\wtpwebapps\\webstore
+org.eclipse.jst.jee.server\:/binary\:C\:\\Users\\APerez\\.m2\\repository\\org\\springframework\\spring-web\\4.3.3.RELEASE\\spring-web-4.3.3.RELEASE.jar=C\:\\Users\\APerez\\Downloads\\sts-bundle\\pivotal-tc-server-developer-3.2.0.RELEASE\\base-instance\\wtpwebapps\\webstore\\WEB-INF\\lib\\spring-web-4.3.3.RELEASE.jar

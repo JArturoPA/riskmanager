@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<modules>
+  <module moduleId="org.eclipse.jst.jee.server:webstore" serverId="Pivotal tc Server Developer Edition v3.1"/>
+  <module moduleId="org.eclipse.jst.jee.server:unit1" serverId="Tomcat 8.5 at localhost"/>
+  <module moduleId="org.eclipse.jst.jee.server:spring-mvc" serverId="Tomcat 8.5 at localhost"/>
+  <module moduleId="org.eclipse.jst.j2ee.server:jsonTest" serverId="Tomcat 8.5 at localhost"/>
+  <module moduleId="org.eclipse.jst.jee.server:original" serverId="Tomcat 8.5 at localhost"/>
+  <module moduleId="org.eclipse.jst.jee.server:web" serverId="Tomcat 8.5 at localhost"/>
+  <module moduleId="org.eclipse.jst.jee.server:test1" serverId="Tomcat 8.5 at localhost"/>
+</modules>

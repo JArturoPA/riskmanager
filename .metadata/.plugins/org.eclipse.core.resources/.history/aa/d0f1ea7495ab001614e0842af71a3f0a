@@ -1,0 +1,5 @@
+package com.analitica.web.domain;
+
+public class FormConsultaHistorica {
+
+}

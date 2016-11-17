@@ -1,0 +1,48 @@
+package com.analitica.web.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.analitica.web.dao.ConsultaHistoricaDAO;
+import com.analitica.web.domain.FormConsultaHistorica;
+import com.analitica.web.domain.PairDateValue;
+
+public class JdbcConsultaHistoricaDAO implements ConsultaHistoricaDAO, InitializingBean {
+	private DataSource dataSource;
+	private JdbcTemplate jdbcTemplate;
+	
+	public void setDataSource(DataSource dataSource){
+		this.dataSource = dataSource;
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
+	@Override
+	public void afterPropertiesSet() throws Exception{
+		if(dataSource == null){
+			throw new BeanCreationException("Must set dataSource on JdbcConsultaHistoricaDAO");
+		}
+		
+		if (jdbcTemplate == null) {
+			throw new BeanCreationException("Null JdbcTemplate on JdbcConsultaHistoricaDAO");
+		}
+	}
+
+	
+	public List<PairDateValue> getReport(FormConsultaHistorica fch) {
+		List<PairDateValue> report = new ArrayList<PairDateValue>();
+		
+		String sql = "SELECT * FROM fr_FactoresDeRiesgo "
+				   + "WHERE Id_Proveedor = ? "
+				   + "AND Id_Factor = ? AND Fecha BETWEEN ? AND ?";
+		
+		report = 
+		return null;
+	}
+
+}
